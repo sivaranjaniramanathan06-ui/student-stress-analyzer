@@ -4,20 +4,86 @@ import plotly.express as px
 import plotly.graph_objects as go
 from reportlab.pdfgen import canvas
 
+st.markdown(
+    """
+    <style>
+
+    /* 🌈 Main Background */
+    .stApp {
+        background: linear-gradient(to right, #0f2027, #203a43, #2c5364);
+        color: white;
+    }
+
+    /* 📦 Cards */
+    div[data-testid="stMetric"] {
+        background-color: rgba(255, 255, 255, 0.08);
+        border-radius: 12px;
+        padding: 15px;
+        box-shadow: 0px 4px 12px rgba(0,0,0,0.3);
+    }
+
+    /* 📊 Titles */
+    h1, h2, h3 {
+        color: #ffffff;
+        font-weight: 600;
+    }
+
+    /* 📁 Sidebar */
+    section[data-testid="stSidebar"] {
+        background-color: #111827;
+    }
+
+    /* 🔘 Buttons */
+    .stButton>button {
+        background: linear-gradient(90deg, #ff6a00, #ee0979);
+        color: white;
+        border-radius: 10px;
+        padding: 0.5em 1em;
+        font-weight: bold;
+        border: none;
+        transition: 0.3s ease;
+    }
+
+    .stButton>button:hover {
+        transform: scale(1.05);
+        background: linear-gradient(90deg, #ee0979, #ff6a00);
+    }
+
+    /* 📄 Dataframe */
+    .dataframe {
+        background-color: white;
+        color: black;
+        border-radius: 10px;
+    }
+
+    </style>
+    """,
+    unsafe_allow_html=True
+)
+
+
+
 # Page settings
 st.set_page_config(
-    page_title="AI Student Stress Dashboard",
+    page_title="Student Stress Analyser Dashboard",
     page_icon="📊",
     layout="wide"
 )
 
 # Title
-st.title("📊 AI-Powered Student Stress Dashboard")
+st.title("📊 Student Stress Analyser Dashboard")
 
 st.markdown("""
-Analyze student stress levels, visualize patterns,
-and provide personalized wellness recommendations.
+# 📊 Student Stress Analyzer Dashboard  
+### 🌿 Wellness insights for students  
 """)
+
+st.markdown("""
+💡 This dashboard analyzes student stress levels using study habits, sleep, screen time, and lifestyle data.
+""")
+
+st.write("")  # empty space
+st.write("")  # extra spacing
 
 # Sidebar
 st.sidebar.header("📁 Upload Student Dataset")
