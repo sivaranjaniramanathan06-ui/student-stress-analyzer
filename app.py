@@ -55,6 +55,14 @@ st.markdown(
         color: black;
         border-radius: 10px;
     }
+    .glass-card {
+        background: rgba(255, 255, 255, 0.6);
+        backdrop-filter: blur(10px);
+        -webkit-backdrop-filter: blur(10px);
+        border-radius: 15px;
+        padding: 15px;
+        box-shadow: 0 4px 20px rgba(0,0,0,0.1);
+    }
 
     </style>
     """,
@@ -71,7 +79,7 @@ st.set_page_config(
 )
 
 # Title
-st.title("📊 Student Stress Analyser Dashboard")
+
 
 st.markdown("""
 # 📊 Student Stress Analyzer Dashboard  
