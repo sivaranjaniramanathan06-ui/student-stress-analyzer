@@ -27,6 +27,52 @@ uploaded_file = st.sidebar.file_uploader(
     type=["csv"]
 )
 
+# Real-Time Student Input
+st.sidebar.header("📝 Real-Time Student Entry")
+
+student_name_input = st.sidebar.text_input(
+    "Student Name"
+)
+
+study_hours_input = st.sidebar.slider(
+    "Study Hours",
+    0,
+    15,
+    6
+)
+
+sleep_hours_input = st.sidebar.slider(
+    "Sleep Hours",
+    0,
+    12,
+    7
+)
+
+screen_time_input = st.sidebar.slider(
+    "Screen Time",
+    0,
+    12,
+    4
+)
+
+exercise_hours_input = st.sidebar.slider(
+    "Exercise Hours",
+    0,
+    5,
+    1
+)
+
+exam_score_input = st.sidebar.slider(
+    "Exam Score",
+    0,
+    100,
+    75
+)
+
+analyze_button = st.sidebar.button(
+    "Analyze Stress"
+)
+
 if uploaded_file is not None:
 
     # Read dataset
