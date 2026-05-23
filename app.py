@@ -1,6 +1,8 @@
 import streamlit as st
 import pandas as pd
 import plotly.express as px
+import plotly.graph_objects as go
+from reportlab.pdfgen import canvas
 
 # Page settings
 st.set_page_config(
@@ -118,9 +120,56 @@ if uploaded_file is not None:
 
     else:
         filtered_data = data
+    # Stress filter
+    stress_filter = st.sidebar.selectbox(
+        "Filter by Stress Level",
+        ["All", "High", "Medium", "Low"]
+    )
+
+    if stress_filter != "All":
+
+        filtered_data = filtered_data[
+            filtered_data['StressLevel'] == stress_filter
+        ]
 
     # Metrics
     st.subheader("📌 Dashboard Metrics")
+
+    # Gauge Meter
+    st.subheader("🎯 Average Stress Meter")
+
+    avg_stress = data['StressScore'].mean()
+
+    gauge_fig = go.Figure(go.Indicator(
+
+        mode="gauge+number",
+
+        value=avg_stress,
+
+        title={'text': "Average Stress Score"},
+
+        gauge={
+
+            'axis': {'range': [0, 100]},
+
+            'bar': {'color': "red"},
+
+            'steps': [
+
+                {'range': [0, 40], 'color': "green"},
+
+                {'range': [40, 70], 'color': "yellow"},
+
+                {'range': [70, 100], 'color': "red"}
+
+            ]
+        }
+    ))
+
+    st.plotly_chart(
+        gauge_fig,
+        use_container_width=True
+    )
 
     col1, col2, col3, col4 = st.columns(4)
 
@@ -150,7 +199,7 @@ if uploaded_file is not None:
     st.dataframe(filtered_data)
 
     # Interactive charts
-    st.subheader("📈 Interactive Visualizations")
+    st.subheader("📊 Student Wellness Insights")
 
     chart1, chart2 = st.columns(2)
 
@@ -183,6 +232,50 @@ if uploaded_file is not None:
             pie_fig,
             use_container_width=True
         )
+    # Correlation Heatmap
+    st.subheader("🔥 Stress Correlation Heatmap")
+
+    correlation = data[
+        [
+            'StudyHours',
+            'SleepHours',
+            'ScreenTime',
+            'ExerciseHours',
+            'StressScore'
+        ]
+    ].corr()
+
+    heatmap_fig = px.imshow(
+        correlation,
+        text_auto=True,
+        aspect="auto",
+        title="Correlation Between Student Habits and Stress"
+    )
+
+    st.plotly_chart(
+        heatmap_fig,
+        use_container_width=True
+    )
+    
+    # Student Comparison Analytics
+    st.subheader("📈 Student Comparison Analytics")
+
+    comparison_fig = px.line(
+        data,
+        x='Student',
+        y=[
+            'StudyHours',
+            'SleepHours',
+            'ScreenTime'
+        ],
+        markers=True,
+        title="Student Lifestyle Comparison"
+    )
+
+    st.plotly_chart(
+        comparison_fig,
+        use_container_width=True
+    )
 
     # High stress alert
     st.subheader("🚨 High Stress Alerts")
@@ -215,6 +308,54 @@ if uploaded_file is not None:
 
     # Download report
     csv = data.to_csv(index=False).encode('utf-8')
+    
+    # PDF Report Generator
+    def create_pdf():
+
+        pdf = canvas.Canvas("stress_report.pdf")
+
+        pdf.setFont("Helvetica-Bold", 16)
+
+        pdf.drawString(
+            180,
+            800,
+            "Student Stress Report"
+        )
+
+        y = 760
+
+        pdf.setFont("Helvetica", 12)
+
+        for index, row in data.iterrows():
+
+            text = (
+                f"{row['Student']} | "
+                f"Stress: {row['StressLevel']} | "
+                f"Score: {row['StressScore']}"
+            )
+
+            pdf.drawString(50, y, text)
+
+            y -= 20
+
+        pdf.save()
+
+    # Create PDF
+    create_pdf()
+
+    # Download PDF
+    with open("stress_report.pdf", "rb") as file:
+
+        st.download_button(
+
+            label="📄 Download PDF Report",
+
+            data=file,
+
+            file_name="stress_report.pdf",
+
+            mime="application/pdf"
+        )
 
     st.download_button(
         label="📥 Download Stress Report",
