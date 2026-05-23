@@ -2,21 +2,31 @@ import streamlit as st
 import pandas as pd
 import matplotlib.pyplot as plt
 
-# Title
-st.title("Student Stress Level Analyzer")
+# Page settings
+st.set_page_config(
+    page_title="Student Stress Analyzer",
+    layout="wide"
+)
 
-# Upload CSV file
-uploaded_file = st.file_uploader("Upload Student CSV File", type=["csv"])
+# Title
+st.title("📊 Student Stress Level Analyzer Dashboard")
+
+st.markdown("Analyze student stress levels and provide wellness suggestions.")
+
+# Sidebar
+st.sidebar.header("Upload Dataset")
+
+uploaded_file = st.sidebar.file_uploader(
+    "Upload CSV File",
+    type=["csv"]
+)
 
 if uploaded_file is not None:
 
-    # Read CSV
+    # Read dataset
     data = pd.read_csv(uploaded_file)
 
-    st.subheader("Student Dataset")
-    st.write(data)
-
-    # Stress calculation function
+    # Stress calculation
     def calculate_stress(row):
 
         stress_score = 0
@@ -42,39 +52,94 @@ if uploaded_file is not None:
         else:
             return "Low"
 
-    # Solution function
+    # Recommendation function
     def give_solution(row):
 
         if row['StressLevel'] == 'High':
-            return "Take breaks, sleep more, reduce screen time, and exercise."
+            return "Sleep more, exercise daily, and reduce screen time."
 
         elif row['StressLevel'] == 'Medium':
-            return "Maintain a balanced routine and relax regularly."
+            return "Maintain a balanced schedule and relax regularly."
 
         else:
-            return "Keep maintaining your healthy lifestyle."
+            return "Healthy lifestyle maintained."
 
-    # Apply stress analysis
+    # Apply functions
     data['StressLevel'] = data.apply(calculate_stress, axis=1)
 
-    # Apply solutions
     data['Solution'] = data.apply(give_solution, axis=1)
 
-    # Display result
-    st.subheader("Stress Analysis Result")
-    st.write(data)
+    # Dashboard Metrics
+    st.subheader("📌 Dashboard Metrics")
 
-    # Count stress levels
+    col1, col2, col3 = st.columns(3)
+
+    col1.metric("Total Students", len(data))
+
+    col2.metric(
+        "Average Study Hours",
+        round(data['StudyHours'].mean(), 2)
+    )
+
+    col3.metric(
+        "Average Sleep Hours",
+        round(data['SleepHours'].mean(), 2)
+    )
+
+    # Display Dataset
+    st.subheader("📄 Student Dataset")
+    st.dataframe(data)
+
+    # Stress Count
     stress_count = data['StressLevel'].value_counts()
 
+    # Charts section
+    st.subheader("📊 Stress Visualization")
+
+    chart1, chart2 = st.columns(2)
+
     # Bar chart
-    st.subheader("Stress Level Chart")
+    with chart1:
 
-    fig, ax = plt.subplots()
+        fig1, ax1 = plt.subplots()
 
-    ax.bar(stress_count.index, stress_count.values)
+        ax1.bar(
+            stress_count.index,
+            stress_count.values
+        )
 
-    ax.set_xlabel("Stress Level")
-    ax.set_ylabel("Number of Students")
+        ax1.set_title("Stress Level Count")
 
-    st.pyplot(fig)
+        ax1.set_xlabel("Stress Level")
+
+        ax1.set_ylabel("Number of Students")
+
+        st.pyplot(fig1)
+
+    # Pie chart
+    with chart2:
+
+        fig2, ax2 = plt.subplots()
+
+        ax2.pie(
+            stress_count.values,
+            labels=stress_count.index,
+            autopct='%1.1f%%'
+        )
+
+        ax2.set_title("Stress Distribution")
+
+        st.pyplot(fig2)
+
+    # High stress students
+    st.subheader("⚠ High Stress Students")
+
+    high_stress = data[data['StressLevel'] == 'High']
+
+    st.dataframe(
+        high_stress[['Student', 'StressLevel', 'Solution']]
+    )
+
+else:
+
+    st.info("Please upload a CSV file to begin analysis.")
