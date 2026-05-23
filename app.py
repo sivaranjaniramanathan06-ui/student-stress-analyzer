@@ -1,20 +1,24 @@
 import streamlit as st
 import pandas as pd
-import matplotlib.pyplot as plt
+import plotly.express as px
 
 # Page settings
 st.set_page_config(
-    page_title="Student Stress Analyzer",
+    page_title="AI Student Stress Dashboard",
+    page_icon="📊",
     layout="wide"
 )
 
 # Title
-st.title("📊 Student Stress Level Analyzer Dashboard")
+st.title("📊 AI-Powered Student Stress Dashboard")
 
-st.markdown("Analyze student stress levels and provide wellness suggestions.")
+st.markdown("""
+Analyze student stress levels, visualize patterns,
+and provide personalized wellness recommendations.
+""")
 
 # Sidebar
-st.sidebar.header("Upload Dataset")
+st.sidebar.header("📁 Upload Student Dataset")
 
 uploaded_file = st.sidebar.file_uploader(
     "Upload CSV File",
@@ -26,120 +30,199 @@ if uploaded_file is not None:
     # Read dataset
     data = pd.read_csv(uploaded_file)
 
-    # Stress calculation
+    # Stress calculation function
     def calculate_stress(row):
 
         stress_score = 0
 
         if row['StudyHours'] > 8:
-            stress_score += 2
+            stress_score += 30
 
         if row['SleepHours'] < 6:
-            stress_score += 2
+            stress_score += 30
 
         if row['ScreenTime'] > 5:
-            stress_score += 1
+            stress_score += 20
 
         if row['ExerciseHours'] == 0:
-            stress_score += 1
+            stress_score += 20
 
-        if stress_score >= 5:
+        return min(stress_score, 100)
+
+    # Apply stress score
+    data['StressScore'] = data.apply(
+        calculate_stress,
+        axis=1
+    )
+
+    # Stress level category
+    def stress_level(score):
+
+        if score >= 70:
             return "High"
 
-        elif stress_score >= 3:
+        elif score >= 40:
             return "Medium"
 
         else:
             return "Low"
 
-    # Recommendation function
+    data['StressLevel'] = data['StressScore'].apply(
+        stress_level
+    )
+
+    # Personalized solutions
     def give_solution(row):
 
-        if row['StressLevel'] == 'High':
-            return "Sleep more, exercise daily, and reduce screen time."
+        if row['StressLevel'] == "High":
 
-        elif row['StressLevel'] == 'Medium':
-            return "Maintain a balanced schedule and relax regularly."
+            return (
+                "⚠ High stress detected. "
+                "Sleep more, reduce screen time, "
+                "exercise daily, and take study breaks."
+            )
+
+        elif row['StressLevel'] == "Medium":
+
+            return (
+                "⚡ Moderate stress detected. "
+                "Maintain balance and practice relaxation."
+            )
 
         else:
-            return "Healthy lifestyle maintained."
 
-    # Apply functions
-    data['StressLevel'] = data.apply(calculate_stress, axis=1)
+            return (
+                "✅ Healthy lifestyle maintained."
+            )
 
-    data['Solution'] = data.apply(give_solution, axis=1)
+    data['Recommendation'] = data.apply(
+        give_solution,
+        axis=1
+    )
 
-    # Dashboard Metrics
+    # Sidebar search
+    st.sidebar.header("🔍 Search Student")
+
+    student_name = st.sidebar.text_input(
+        "Enter Student Name"
+    )
+
+    if student_name:
+
+        filtered_data = data[
+            data['Student'].str.contains(
+                student_name,
+                case=False
+            )
+        ]
+
+    else:
+        filtered_data = data
+
+    # Metrics
     st.subheader("📌 Dashboard Metrics")
 
-    col1, col2, col3 = st.columns(3)
+    col1, col2, col3, col4 = st.columns(4)
 
-    col1.metric("Total Students", len(data))
+    col1.metric(
+        "Total Students",
+        len(data)
+    )
 
     col2.metric(
-        "Average Study Hours",
-        round(data['StudyHours'].mean(), 2)
+        "Average Stress Score",
+        round(data['StressScore'].mean(), 1)
     )
 
     col3.metric(
-        "Average Sleep Hours",
-        round(data['SleepHours'].mean(), 2)
+        "Average Study Hours",
+        round(data['StudyHours'].mean(), 1)
     )
 
-    # Display Dataset
-    st.subheader("📄 Student Dataset")
-    st.dataframe(data)
+    col4.metric(
+        "Average Sleep Hours",
+        round(data['SleepHours'].mean(), 1)
+    )
 
-    # Stress Count
-    stress_count = data['StressLevel'].value_counts()
+    # Dataset display
+    st.subheader("📄 Student Stress Dataset")
 
-    # Charts section
-    st.subheader("📊 Stress Visualization")
+    st.dataframe(filtered_data)
+
+    # Interactive charts
+    st.subheader("📈 Interactive Visualizations")
 
     chart1, chart2 = st.columns(2)
 
     # Bar chart
     with chart1:
 
-        fig1, ax1 = plt.subplots()
-
-        ax1.bar(
-            stress_count.index,
-            stress_count.values
+        bar_fig = px.bar(
+            data,
+            x='Student',
+            y='StressScore',
+            color='StressLevel',
+            title="Student Stress Scores"
         )
 
-        ax1.set_title("Stress Level Count")
-
-        ax1.set_xlabel("Stress Level")
-
-        ax1.set_ylabel("Number of Students")
-
-        st.pyplot(fig1)
+        st.plotly_chart(
+            bar_fig,
+            use_container_width=True
+        )
 
     # Pie chart
     with chart2:
 
-        fig2, ax2 = plt.subplots()
-
-        ax2.pie(
-            stress_count.values,
-            labels=stress_count.index,
-            autopct='%1.1f%%'
+        pie_fig = px.pie(
+            data,
+            names='StressLevel',
+            title="Stress Level Distribution"
         )
 
-        ax2.set_title("Stress Distribution")
+        st.plotly_chart(
+            pie_fig,
+            use_container_width=True
+        )
 
-        st.pyplot(fig2)
+    # High stress alert
+    st.subheader("🚨 High Stress Alerts")
 
-    # High stress students
-    st.subheader("⚠ High Stress Students")
+    high_stress = data[
+        data['StressLevel'] == 'High'
+    ]
 
-    high_stress = data[data['StressLevel'] == 'High']
+    if len(high_stress) > 0:
 
-    st.dataframe(
-        high_stress[['Student', 'StressLevel', 'Solution']]
+        st.error(
+            f"{len(high_stress)} students are under high stress!"
+        )
+
+        st.dataframe(
+            high_stress[
+                [
+                    'Student',
+                    'StressScore',
+                    'Recommendation'
+                ]
+            ]
+        )
+
+    else:
+
+        st.success(
+            "No high stress students detected."
+        )
+
+    # Download report
+    csv = data.to_csv(index=False).encode('utf-8')
+
+    st.download_button(
+        label="📥 Download Stress Report",
+        data=csv,
+        file_name='student_stress_report.csv',
+        mime='text/csv'
     )
 
 else:
 
-    st.info("Please upload a CSV file to begin analysis.")
+    st.info("📂 Please upload a CSV file to start analysis.")
