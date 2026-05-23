@@ -4,254 +4,531 @@ import plotly.express as px
 import plotly.graph_objects as go
 from reportlab.pdfgen import canvas
 
-# =========================
-# PAGE CONFIG
-# =========================
+st.markdown(
+    """
+    <style>
+
+    /* 🌈 Main Background */
+    .stApp {
+        background: linear-gradient(to right, #0f2027, #203a43, #2c5364);
+        color: white;
+    }
+
+    /* 📦 Cards */
+    div[data-testid="stMetric"] {
+        background-color: rgba(255, 255, 255, 0.08);
+        border-radius: 12px;
+        padding: 15px;
+        box-shadow: 0px 4px 12px rgba(0,0,0,0.3);
+    }
+
+    /* 📊 Titles */
+    h1, h2, h3 {
+        color: #ffffff;
+        font-weight: 600;
+    }
+
+    /* 📁 Sidebar */
+    section[data-testid="stSidebar"] {
+        background-color: #111827;
+    }
+
+    /* 🔘 Buttons */
+    .stButton>button {
+        background: linear-gradient(90deg, #ff6a00, #ee0979);
+        color: white;
+        border-radius: 10px;
+        padding: 0.5em 1em;
+        font-weight: bold;
+        border: none;
+        transition: 0.3s ease;
+    }
+
+    .stButton>button:hover {
+        transform: scale(1.05);
+        background: linear-gradient(90deg, #ee0979, #ff6a00);
+    }
+
+    /* 📄 Dataframe */
+    .dataframe {
+        background-color: white;
+        color: black;
+        border-radius: 10px;
+    }
+    .glass-card {
+        background: rgba(255, 255, 255, 0.6);
+        backdrop-filter: blur(10px);
+        -webkit-backdrop-filter: blur(10px);
+        border-radius: 15px;
+        padding: 15px;
+        box-shadow: 0 4px 20px rgba(0,0,0,0.1);
+    }
+
+    </style>
+    """,
+    unsafe_allow_html=True
+)
+
+
+
+# Page settings
 st.set_page_config(
-    page_title="Student Stress Analyzer Dashboard",
+    page_title="Student Stress Analyser Dashboard",
     page_icon="📊",
     layout="wide"
 )
 
-# =========================
-# 🌈 UI STYLING (CSS)
-# =========================
-st.markdown("""
-<style>
+# Title
 
-/* 🌈 Main Background */
-.stApp {
-    background-color: #f4f6f9;
-    color: #111827;
-}
 
-/* 📁 Sidebar */
-section[data-testid="stSidebar"] {
-    background-color: #111827;
-    color: white;
-}
-
-/* 🔘 Buttons */
-.stButton>button {
-    background: #4f46e5;
-    color: white;
-    border-radius: 8px;
-    padding: 0.5em 1em;
-    font-weight: bold;
-    border: none;
-}
-
-.stButton>button:hover {
-    background: #4338ca;
-}
-
-/* 📦 Metric Cards */
-div[data-testid="stMetric"] {
-    background-color: white;
-    border-radius: 12px;
-    padding: 15px;
-    box-shadow: 0px 2px 10px rgba(0,0,0,0.1);
-}
-
-/* 🌫 Glass Cards */
-.glass-card {
-    background: rgba(255, 255, 255, 0.7);
-    backdrop-filter: blur(10px);
-    -webkit-backdrop-filter: blur(10px);
-    border-radius: 15px;
-    padding: 15px;
-    box-shadow: 0 4px 20px rgba(0,0,0,0.1);
-}
-
-/* 📊 Titles */
-h1, h2, h3 {
-    color: #111827;
-}
-
-</style>
-""", unsafe_allow_html=True)
-
-# =========================
-# HEADER
-# =========================
 st.markdown("""
 # 📊 Student Stress Analyzer Dashboard  
-### 🌿 AI-powered wellness insights for students  
+### 🌿 Wellness insights for students  
 """)
 
-st.markdown("Analyze student stress levels and get personalized wellness recommendations.")
+st.markdown("""
+💡 This dashboard analyzes student stress levels using study habits, sleep, screen time, and lifestyle data.
+""")
 
-st.write("")
+st.write("")  # empty space
+st.write("")  # extra spacing
 
-# =========================
-# SIDEBAR
-# =========================
-st.sidebar.header("📁 Upload Dataset")
+# Sidebar
+st.sidebar.header("📁 Upload Student Dataset")
 
-uploaded_file = st.sidebar.file_uploader("Upload CSV File", type=["csv"])
+uploaded_file = st.sidebar.file_uploader(
+    "Upload CSV File",
+    type=["csv"]
+)
 
-st.sidebar.header("📝 Real-Time Input")
+# Real-Time Student Input
+st.sidebar.header("📝 Real-Time Student Entry")
 
-student_name_input = st.sidebar.text_input("Student Name")
-study_hours_input = st.sidebar.slider("Study Hours", 0, 15, 6)
-sleep_hours_input = st.sidebar.slider("Sleep Hours", 0, 12, 7)
-screen_time_input = st.sidebar.slider("Screen Time", 0, 12, 4)
-exercise_hours_input = st.sidebar.slider("Exercise Hours", 0, 5, 1)
+student_name_input = st.sidebar.text_input(
+    "Student Name"
+)
 
-analyze_button = st.sidebar.button("Analyze Stress")
+study_hours_input = st.sidebar.slider(
+    "Study Hours",
+    0,
+    15,
+    6
+)
 
-# =========================
-# MAIN DATA LOGIC
-# =========================
+sleep_hours_input = st.sidebar.slider(
+    "Sleep Hours",
+    0,
+    12,
+    7
+)
+
+screen_time_input = st.sidebar.slider(
+    "Screen Time",
+    0,
+    12,
+    4
+)
+
+exercise_hours_input = st.sidebar.slider(
+    "Exercise Hours",
+    0,
+    5,
+    1
+)
+
+exam_score_input = st.sidebar.slider(
+    "Exam Score",
+    0,
+    100,
+    75
+)
+
+analyze_button = st.sidebar.button(
+    "Analyze Stress"
+)
+
 if uploaded_file is not None:
 
+    # Read dataset
     data = pd.read_csv(uploaded_file)
 
-    # Stress calculation
+    # Stress calculation function
     def calculate_stress(row):
-        score = 0
+
+        stress_score = 0
+
         if row['StudyHours'] > 8:
-            score += 30
+            stress_score += 30
+
         if row['SleepHours'] < 6:
-            score += 30
+            stress_score += 30
+
         if row['ScreenTime'] > 5:
-            score += 20
+            stress_score += 20
+
         if row['ExerciseHours'] == 0:
-            score += 20
-        return min(score, 100)
+            stress_score += 20
 
-    data['StressScore'] = data.apply(calculate_stress, axis=1)
+        return min(stress_score, 100)
 
+    # Apply stress score
+    data['StressScore'] = data.apply(
+        calculate_stress,
+        axis=1
+    )
+
+    # Stress level category
     def stress_level(score):
+
         if score >= 70:
             return "High"
+
         elif score >= 40:
             return "Medium"
-        return "Low"
 
-    data['StressLevel'] = data['StressScore'].apply(stress_level)
+        else:
+            return "Low"
 
+    data['StressLevel'] = data['StressScore'].apply(
+        stress_level
+    )
+
+    # Personalized solutions
     def give_solution(row):
+
         if row['StressLevel'] == "High":
-            return "⚠ Reduce stress: Sleep more, exercise, reduce screen time"
+
+            return (
+                "⚠ High stress detected. "
+                "Sleep more, reduce screen time, "
+                "exercise daily, and take study breaks."
+            )
+
         elif row['StressLevel'] == "Medium":
-            return "⚡ Maintain balance and relax"
-        return "✅ Healthy lifestyle"
 
-    data['Recommendation'] = data.apply(give_solution, axis=1)
+            return (
+                "⚡ Moderate stress detected. "
+                "Maintain balance and practice relaxation."
+            )
 
-    # =========================
-    # METRICS
-    # =========================
+        else:
+
+            return (
+                "✅ Healthy lifestyle maintained."
+            )
+
+    data['Recommendation'] = data.apply(
+        give_solution,
+        axis=1
+    )
+
+    # Sidebar search
+    st.sidebar.header("🔍 Search & Filter")
+
+    # Student search
+    student_name = st.sidebar.text_input(
+        "Enter Student Name"
+    )
+
+    # Stress level filter
+    stress_filter = st.sidebar.selectbox(
+        "Filter by Stress Level",
+        ["All", "High", "Medium", "Low"]
+    )
+
+    # Start with full dataset
+    filtered_data = data.copy()
+
+    # Apply student search
+    if student_name:
+
+        filtered_data = filtered_data[
+            filtered_data['Student'].str.contains(
+                student_name,
+                case=False
+            )
+        ]
+
+    # Apply stress filter
+    if stress_filter != "All":
+
+        filtered_data = filtered_data[
+            filtered_data['StressLevel'] == stress_filter
+        ]
+
+    # Metrics
     st.subheader("📌 Dashboard Metrics")
 
     col1, col2, col3, col4 = st.columns(4)
 
-    col1.metric("Total Students", len(data))
-    col2.metric("Avg Stress", round(data['StressScore'].mean(), 1))
-    col3.metric("Avg Study Hours", round(data['StudyHours'].mean(), 1))
-    col4.metric("Avg Sleep Hours", round(data['SleepHours'].mean(), 1))
+    col1.metric(
+        "Total Students",
+        len(data)
+    )
 
-    # =========================
-    # QUICK CARDS (GLASS UI)
-    # =========================
-    st.markdown("## 🌟 Wellness Insights")
+    col2.metric(
+        "Average Stress Score",
+        round(data['StressScore'].mean(), 1)
+    )
 
-    c1, c2, c3 = st.columns(3)
+    col3.metric(
+        "Average Study Hours",
+        round(data['StudyHours'].mean(), 1)
+    )
 
-    with c1:
-        st.markdown("""
-        <div class="glass-card">
-        <h3>📚 Study</h3>
-        <p>Keep study hours between 6–8 for balance</p>
-        </div>
-        """, unsafe_allow_html=True)
+    col4.metric(
+        "Average Sleep Hours",
+        round(data['SleepHours'].mean(), 1)
+    )
 
-    with c2:
-        st.markdown("""
-        <div class="glass-card">
-        <h3>😴 Sleep</h3>
-        <p>7–8 hours sleep improves focus</p>
-        </div>
-        """, unsafe_allow_html=True)
+    # Dataset display
+    st.subheader("📄 Student Stress Dataset")
 
-    with c3:
-        st.markdown("""
-        <div class="glass-card">
-        <h3>🏃 Health</h3>
-        <p>Exercise reduces stress naturally</p>
-        </div>
-        """, unsafe_allow_html=True)
+    st.dataframe(filtered_data)
 
-    # =========================
-    # TABLE
-    # =========================
-    st.subheader("📄 Dataset")
-    st.dataframe(data)
+    # Gauge Meter
+    st.subheader("🎯 Average Stress Meter")
 
-    # =========================
-    # HIGH STRESS ALERT
-    # =========================
-    high_stress = data[data['StressLevel'] == "High"]
+    avg_stress = data['StressScore'].mean()
 
-    st.subheader("🚨 Alerts")
+    gauge_fig = go.Figure(go.Indicator(
+
+        mode="gauge+number",
+
+        value=avg_stress,
+
+        title={'text': "Average Stress Score"},
+
+        gauge={
+
+            'axis': {'range': [0, 100]},
+
+            'bar': {'color': "red"},
+
+            'steps': [
+
+                {'range': [0, 40], 'color': "green"},
+
+                {'range': [40, 70], 'color': "yellow"},
+
+                {'range': [70, 100], 'color': "red"}
+
+            ]
+        }
+    ))
+
+    st.plotly_chart(
+        gauge_fig,
+        use_container_width=True
+    )
+
+    # Interactive charts
+    st.subheader("📊 Student Wellness Insights")
+
+    chart1, chart2 = st.columns(2)
+
+    # Bar chart
+    with chart1:
+
+        bar_fig = px.bar(
+            data,
+            x='Student',
+            y='StressScore',
+            color='StressLevel',
+            title="Student Stress Scores"
+        )
+
+        st.plotly_chart(
+            bar_fig,
+            use_container_width=True
+        )
+
+    # Pie chart
+    with chart2:
+
+        pie_fig = px.pie(
+            data,
+            names='StressLevel',
+            title="Stress Level Distribution"
+        )
+
+        st.plotly_chart(
+            pie_fig,
+            use_container_width=True
+        )
+
+    # Student Comparison Analytics
+    st.subheader("📈 Student Comparison Analytics")
+
+    comparison_fig = px.line(
+        data,
+        x='Student',
+        y=[
+            'StudyHours',
+            'SleepHours',
+            'ScreenTime'
+        ],
+        markers=True,
+        title="Student Lifestyle Comparison"
+    )
+
+    st.plotly_chart(
+        comparison_fig,
+        use_container_width=True
+    )
+
+    # High stress alert
+    st.subheader("🚨 High Stress Alerts")
+
+    high_stress = data[
+        data['StressLevel'] == 'High'
+    ]
 
     if len(high_stress) > 0:
 
-        st.markdown("""
-        <div style="
-        background-color:#ff4d4d;
-        color:white;
-        padding:15px;
-        border-radius:10px;
-        font-weight:bold;
-        animation: blink 1s infinite;
-        ">
-        🚨 HIGH STRESS ALERT DETECTED!
-        </div>
+        st.error(
+            f"{len(high_stress)} students are under high stress!"
+        )
 
-        <style>
-        @keyframes blink {
-            50% {opacity: 0.5;}
-        }
-        </style>
-        """, unsafe_allow_html=True)
+        st.dataframe(
+            high_stress[
+                [
+                    'Student',
+                    'StressScore',
+                    'Recommendation'
+                ]
+            ]
+        )
 
     else:
-        st.success("No high stress students detected.")
 
-    # =========================
-    # CHARTS
-    # =========================
-    st.subheader("📊 Insights")
+        st.success(
+            "No high stress students detected."
+        )
 
-    fig = px.bar(data, x="Student", y="StressScore", color="StressLevel")
-    st.plotly_chart(fig, use_container_width=True)
+       # Download report
+    csv = data.to_csv(index=False).encode('utf-8')
+
+    # PDF Report Generator
+    def create_pdf():
+
+        pdf = canvas.Canvas("stress_report.pdf")
+
+        pdf.setFont("Helvetica-Bold", 16)
+
+        pdf.drawString(
+            180,
+            800,
+            "Student Stress Report"
+        )
+
+        y = 760
+
+        pdf.setFont("Helvetica", 12)
+
+        for index, row in data.iterrows():
+
+            text = (
+                f"{row['Student']} | "
+                f"Stress: {row['StressLevel']} | "
+                f"Score: {row['StressScore']}"
+            )
+
+            pdf.drawString(50, y, text)
+
+            y -= 20
+
+        pdf.save()
+
+    # Create PDF
+    create_pdf()
+
+    # Download PDF
+    with open("stress_report.pdf", "rb") as file:
+
+        st.download_button(
+
+            label="📄 Download PDF Report",
+
+            data=file,
+
+            file_name="stress_report.pdf",
+
+            mime="application/pdf"
+        )
+
+    # CSV Download
+    st.download_button(
+        label="📥 Download Stress Report",
+        data=csv,
+        file_name='student_stress_report.csv',
+        mime='text/csv'
+    )
+
+else:
+
+    st.info("📂 Please upload a CSV file to start analysis.")
+
 
 # =========================
 # REAL-TIME ANALYSIS
 # =========================
+
 if analyze_button:
 
-    score = 0
+    stress_score = 0
 
     if study_hours_input > 8:
-        score += 30
+        stress_score += 30
+
     if sleep_hours_input < 6:
-        score += 30
+        stress_score += 30
+
     if screen_time_input > 5:
-        score += 20
+        stress_score += 20
+
     if exercise_hours_input == 0:
-        score += 20
+        stress_score += 20
 
-    if score >= 70:
-        level = "High"
-    elif score >= 40:
-        level = "Medium"
+    # Stress Level
+    if stress_score >= 70:
+        stress_level = "High"
+
+    elif stress_score >= 40:
+        stress_level = "Medium"
+
     else:
-        level = "Low"
+        stress_level = "Low"
 
-    st.subheader("🧠 Real-Time Analysis")
-    st.write(f"👤 Student: {student_name_input}")
-    st.write(f"📊 Stress Score: {score}")
-    st.write(f"🚨 Stress Level: {level}")
+    # Recommendation
+    if stress_level == "High":
+
+        recommendation = (
+            "⚠ High stress detected. "
+            "Sleep more, reduce screen time, "
+            "exercise daily, and take breaks."
+        )
+
+    elif stress_level == "Medium":
+
+        recommendation = (
+            "⚡ Moderate stress detected. "
+            "Maintain balance and relax regularly."
+        )
+
+    else:
+
+        recommendation = (
+            "✅ Healthy lifestyle maintained."
+        )
+
+    # Display Results
+    st.subheader("🧠 Real-Time Stress Analysis")
+
+    st.write(f"### 👤 Student: {student_name_input}")
+
+    st.write(f"### 📊 Stress Score: {stress_score}")
+
+    st.write(f"### 🚨 Stress Level: {stress_level}")
+
+    st.success(recommendation)
