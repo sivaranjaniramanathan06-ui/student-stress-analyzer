@@ -390,6 +390,66 @@ if uploaded_file is not None:
         mime='text/csv'
     )
 
+        # Real-Time Analysis
+    if analyze_button:
+
+        stress_score = 0
+
+        if study_hours_input > 8:
+            stress_score += 30
+
+        if sleep_hours_input < 6:
+            stress_score += 30
+
+        if screen_time_input > 5:
+            stress_score += 20
+
+        if exercise_hours_input == 0:
+            stress_score += 20
+
+        # Stress Level
+        if stress_score >= 70:
+            stress_level = "High"
+
+        elif stress_score >= 40:
+            stress_level = "Medium"
+
+        else:
+            stress_level = "Low"
+
+        # Recommendation
+        if stress_level == "High":
+
+            recommendation = (
+                "⚠ High stress detected. "
+                "Sleep more, reduce screen time, "
+                "exercise daily, and take breaks."
+            )
+
+        elif stress_level == "Medium":
+
+            recommendation = (
+                "⚡ Moderate stress detected. "
+                "Maintain balance and relax regularly."
+            )
+
+        else:
+
+            recommendation = (
+                "✅ Healthy lifestyle maintained."
+            )
+
+        # Display Results
+        st.subheader("🧠 Real-Time Stress Analysis")
+
+        st.write(f"### 👤 Student: {student_name_input}")
+
+        st.write(f"### 📊 Stress Score: {stress_score}")
+
+        st.write(f"### 🚨 Stress Level: {stress_level}")
+
+        st.success(recommendation)
+
 else:
 
     st.info("📂 Please upload a CSV file to start analysis.")
