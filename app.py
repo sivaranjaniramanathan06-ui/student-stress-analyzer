@@ -103,29 +103,33 @@ if uploaded_file is not None:
     )
 
     # Sidebar search
-    st.sidebar.header("🔍 Search Student")
+    st.sidebar.header("🔍 Search & Filter")
 
+    # Student search
     student_name = st.sidebar.text_input(
         "Enter Student Name"
     )
 
-    if student_name:
-
-        filtered_data = data[
-            data['Student'].str.contains(
-                student_name,
-                case=False
-            )
-        ]
-
-    else:
-        filtered_data = data
-    # Stress filter
+    # Stress level filter
     stress_filter = st.sidebar.selectbox(
         "Filter by Stress Level",
         ["All", "High", "Medium", "Low"]
     )
 
+    # Start with full dataset
+    filtered_data = data.copy()
+
+    # Apply student search
+    if student_name:
+
+        filtered_data = filtered_data[
+            filtered_data['Student'].str.contains(
+                student_name,
+                case=False
+            )
+        ]
+
+    # Apply stress filter
     if stress_filter != "All":
 
         filtered_data = filtered_data[
@@ -134,6 +138,33 @@ if uploaded_file is not None:
 
     # Metrics
     st.subheader("📌 Dashboard Metrics")
+
+    col1, col2, col3, col4 = st.columns(4)
+
+    col1.metric(
+        "Total Students",
+        len(data)
+    )
+
+    col2.metric(
+        "Average Stress Score",
+        round(data['StressScore'].mean(), 1)
+    )
+
+    col3.metric(
+        "Average Study Hours",
+        round(data['StudyHours'].mean(), 1)
+    )
+
+    col4.metric(
+        "Average Sleep Hours",
+        round(data['SleepHours'].mean(), 1)
+    )
+
+    # Dataset display
+    st.subheader("📄 Student Stress Dataset")
+
+    st.dataframe(filtered_data)
 
     # Gauge Meter
     st.subheader("🎯 Average Stress Meter")
@@ -171,33 +202,6 @@ if uploaded_file is not None:
         use_container_width=True
     )
 
-    col1, col2, col3, col4 = st.columns(4)
-
-    col1.metric(
-        "Total Students",
-        len(data)
-    )
-
-    col2.metric(
-        "Average Stress Score",
-        round(data['StressScore'].mean(), 1)
-    )
-
-    col3.metric(
-        "Average Study Hours",
-        round(data['StudyHours'].mean(), 1)
-    )
-
-    col4.metric(
-        "Average Sleep Hours",
-        round(data['SleepHours'].mean(), 1)
-    )
-
-    # Dataset display
-    st.subheader("📄 Student Stress Dataset")
-
-    st.dataframe(filtered_data)
-
     # Interactive charts
     st.subheader("📊 Student Wellness Insights")
 
@@ -232,31 +236,7 @@ if uploaded_file is not None:
             pie_fig,
             use_container_width=True
         )
-    # Correlation Heatmap
-    st.subheader("🔥 Stress Correlation Heatmap")
 
-    correlation = data[
-        [
-            'StudyHours',
-            'SleepHours',
-            'ScreenTime',
-            'ExerciseHours',
-            'StressScore'
-        ]
-    ].corr()
-
-    heatmap_fig = px.imshow(
-        correlation,
-        text_auto=True,
-        aspect="auto",
-        title="Correlation Between Student Habits and Stress"
-    )
-
-    st.plotly_chart(
-        heatmap_fig,
-        use_container_width=True
-    )
-    
     # Student Comparison Analytics
     st.subheader("📈 Student Comparison Analytics")
 
