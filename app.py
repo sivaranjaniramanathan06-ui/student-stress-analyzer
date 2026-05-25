@@ -616,6 +616,89 @@ if analyze_button:
 
     st.success("✅ Student data saved successfully!")
 
+    # =========================
+    # FETCH STUDENT HISTORY
+    # =========================
+
+    history_query = '''
+
+    SELECT
+        analysis_date,
+        stress_score
+
+    FROM stress_data
+
+    WHERE student_name = ?
+
+    ORDER BY analysis_date
+
+    '''
+
+    history_data = pd.read_sql_query(
+
+        history_query,
+
+        conn,
+
+        params=(student_name_input,)
+    )
+
+    # =========================
+    # STRESS TREND CHART
+    # =========================
+
+    if len(history_data) > 1:
+
+        st.subheader("📈 Stress Progress Timeline")
+
+        trend_fig = px.line(
+
+            history_data,
+
+            x='analysis_date',
+
+            y='stress_score',
+
+            markers=True,
+
+            title="Student Stress Trend Over Time"
+        )
+
+        st.plotly_chart(
+            trend_fig,
+            use_container_width=True
+        )
+
+        # Improvement Analysis
+        first_score = history_data[
+            'stress_score'
+        ].iloc[0]
+
+        latest_score = history_data[
+            'stress_score'
+        ].iloc[-1]
+
+        improvement = first_score - latest_score
+
+        if improvement > 0:
+
+            st.success(
+                f"✅ Overall stress reduced by {improvement} points!"
+            )
+
+        elif improvement < 0:
+
+            st.error(
+                f"⚠ Stress increased by {abs(improvement)} points!"
+            )
+
+        else:
+
+            st.info(
+                "ℹ No overall stress change detected."
+            )
+
+
 
     # =========================
     # PREVIOUS RECORD COMPARISON
