@@ -574,3 +574,123 @@ if analyze_button:
     st.write(f"### 🚨 Stress Level: {stress_level}")
 
     st.success(recommendation)
+
+    # Save to Database
+    cursor.execute(
+        '''
+        INSERT INTO stress_data (
+
+            student_name,
+            study_hours,
+            sleep_hours,
+            screen_time,
+            exercise_hours,
+            exam_score,
+            stress_score,
+            stress_level,
+            recommendation,
+            analysis_date
+
+        )
+
+        VALUES (?, ?, ?, ?, ?, ?, ?, ?, ?, ?)
+        ''',
+
+        (
+
+            student_name_input,
+            study_hours_input,
+            sleep_hours_input,
+            screen_time_input,
+            exercise_hours_input,
+            exam_score_input,
+            stress_score,
+            stress_level,
+            recommendation,
+            datetime.now().strftime("%Y-%m-%d %H:%M:%S")
+
+        )
+    )
+
+    conn.commit()
+
+    st.success("✅ Student data saved successfully!")
+
+
+    # =========================
+    # PREVIOUS RECORD COMPARISON
+    # =========================
+
+    cursor.execute(
+        '''
+        SELECT *
+
+        FROM stress_data
+
+        WHERE student_name = ?
+
+        ORDER BY id DESC
+        ''',
+
+        (student_name_input,)
+    )
+
+    records = cursor.fetchall()
+
+    # Check if previous record exists
+    if len(records) > 1:
+
+        previous_record = records[1]
+
+        previous_stress = previous_record[7]
+
+        st.subheader("📈 Stress Progress Comparison")
+
+        # Stress difference
+        difference = previous_stress - stress_score
+
+        if difference > 0:
+
+            st.success(
+                f"✅ Stress improved by {difference} points!"
+            )
+
+        elif difference < 0:
+
+            st.error(
+                f"⚠ Stress increased by {abs(difference)} points!"
+            )
+
+        else:
+
+            st.info(
+                "ℹ No change in stress level detected."
+            )
+
+        # Lifestyle improvements
+        previous_sleep = previous_record[3]
+        previous_screen = previous_record[4]
+
+        if sleep_hours_input > previous_sleep:
+
+            st.success(
+                "😴 Sleep duration improved."
+            )
+
+        else:
+
+            st.warning(
+                "⚠ Try improving sleep duration."
+            )
+
+        if screen_time_input < previous_screen:
+
+            st.success(
+                "📱 Screen time reduced."
+            )
+
+        else:
+
+            st.warning(
+                "⚠ Screen time is still high."
+            )
