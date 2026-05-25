@@ -3,6 +3,8 @@ import pandas as pd
 import plotly.express as px
 import plotly.graph_objects as go
 from reportlab.pdfgen import canvas
+import sqlite3
+from datetime import datetime
 
 st.markdown(
     """
@@ -69,6 +71,46 @@ st.markdown(
     unsafe_allow_html=True
 )
 
+# =========================
+# DATABASE CONNECTION
+# =========================
+
+conn = sqlite3.connect(
+    'student_stress.db',
+    check_same_thread=False
+)
+
+cursor = conn.cursor()
+
+# Create table
+cursor.execute('''
+CREATE TABLE IF NOT EXISTS stress_data (
+
+    id INTEGER PRIMARY KEY AUTOINCREMENT,
+
+    student_name TEXT,
+
+    study_hours INTEGER,
+
+    sleep_hours INTEGER,
+
+    screen_time INTEGER,
+
+    exercise_hours INTEGER,
+
+    exam_score INTEGER,
+
+    stress_score INTEGER,
+
+    stress_level TEXT,
+
+    recommendation TEXT,
+
+    analysis_date TEXT
+)
+''')
+
+conn.commit()
 
 
 # Page settings
